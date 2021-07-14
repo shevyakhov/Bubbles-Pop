@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -30,12 +31,15 @@ class MainActivity : AppCompatActivity() {
                     ConstraintLayout.LayoutParams.WRAP_CONTENT
                 )
                 newView.layoutParams = params
-                newView.x = x- ViewWidth/2
-                newView.y = y- ViewHeight/2
+                newView.x = x - ViewWidth / 2
+                newView.y = y - ViewHeight / 2
                 addContentView(newView, params)
                 viewsList.add(newView)
             }
-
+            true
+        }
+        backgr.setOnLongClickListener{
+            Toast.makeText(this, "Long click detected", Toast.LENGTH_SHORT).show()
             true
         }
 

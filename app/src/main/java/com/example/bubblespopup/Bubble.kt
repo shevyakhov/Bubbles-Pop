@@ -1,11 +1,14 @@
 package com.example.bubblespopup
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.opengl.Visibility
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewPropertyAnimator
@@ -44,22 +47,20 @@ class Bubble @JvmOverloads constructor(
 
 
     private fun animateThis() {
-        if (animation != null) {
-            animation!!.cancel()
-        }
+        cancelAnimationIfNessesary()
         animation = animate()
-        /*checking if view hitting the borders*/
-        horizontalHit()
-        verticalHit()
+        isHorizontalHit()
+        isVerticalHit()
         animation!!.x(this.x + speedX).y(this.y + speedY).setUpdateListener {
             thisLayout = this.parent as ViewGroup
             var count = thisLayout.childCount
-            (0..count).forEach { i ->
+            (1..count).forEach { i ->
                 val v: View
                 if (thisLayout.getChildAt(i) != null) {
                     v = thisLayout.getChildAt(i)
                     if (v != this) {
                         if (isOverlap(v)) {
+                            sendBackALittle()
                             speedX = -speedX
                             speedY = -speedY
                         }
@@ -80,30 +81,34 @@ class Bubble @JvmOverloads constructor(
         speedY = randomY.toFloat()
     }
 
-
+private fun cancelAnimationIfNessesary(){
+    if (animation != null) {
+        animation!!.cancel()
+    }
+}
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
     }
 
-    private fun horizontalHit(){
+    private fun isHorizontalHit(){
         if (this.x <= 0) {
-            this.x += 40
+            this.x += WallHitPushBack
             speedX = -(speedX)
         } else
             if (this.x >= displayWidth - width){
-                this.x -= 40
+                this.x -= WallHitPushBack
                 speedX = -(speedX)
             }
 
 
     }
-    private fun verticalHit(){
+    private fun isVerticalHit(){
         if (this.y <= 0) {
-            this.y += 40
+            this.y += WallHitPushBack
             speedY = -(speedY)
         } else
             if (this.y >= displayHeight - height){
-                this.y -= 40
+                this.y -= WallHitPushBack
                 speedY = -(speedY)
             }
 
@@ -130,6 +135,10 @@ class Bubble @JvmOverloads constructor(
 
         return rect1.intersect(rect2)
     }
+    private fun sendBackALittle(){
+        this.x -= speedX * PushBackCoefficent
+        this.y -= speedY * PushBackCoefficent
+    }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val desiredWidth = ViewWidth
         val desiredHeight = ViewHeight
@@ -139,7 +148,13 @@ class Bubble @JvmOverloads constructor(
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         radius = width.toFloat()
     }
-
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        super.onTouchEvent(event)
+        cancelAnimationIfNessesary()
+        thisLayout.removeView(this)
+        return true
+    }
     init {
         isClickable = true
     }
